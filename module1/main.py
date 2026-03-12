@@ -3,7 +3,7 @@ import json
 
 def main():
     html_file = "data/sample.html"
-    manager = ParserManager()
+    manager = ParserManager(parser_type="lxml")
     result = manager.process_file(html_file)
     print(result)
     with open("output/result.json", "w", encoding="utf-8") as f:

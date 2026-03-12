@@ -1,11 +1,11 @@
 from bs4 import BeautifulSoup
 
 class HTMLParser:
-    def __init__(self):
-        pass
+    def __init__(self, parser_type: str = "html.parser"):
+        self.parser_type = parser_type
 
     def parse(self, html: str, schemas: list = None):
-        soup = BeautifulSoup(html, "html.parser")
+        soup = BeautifulSoup(html, self.parser_type)
         data = {
             "headings": self.extract_headings(soup),
             "paragraphs": self.extract_paragraphs(soup),

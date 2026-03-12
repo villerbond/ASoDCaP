@@ -3,8 +3,8 @@ from schemas.schemas import product_schema
 
 class ParserManager:
 
-    def __init__(self):
-        self.parser = HTMLParser()
+    def __init__(self, parser_type: str = "html.parser"):
+        self.parser = HTMLParser(parser_type)
         self.schemas = [("products", product_schema)]
 
     def process_file(self, file: str):
