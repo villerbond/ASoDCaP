@@ -1,6 +1,71 @@
+from bs4 import BeautifulSoup
+
 class HTMLParser:
     def __init__(self):
         pass
 
-    def parse():
-        pass
+    def parse(self, html: str, schemas: list = None):
+        soup = BeautifulSoup(html, "html.parser")
+        data = {
+            "headings": self.extract_headings(soup),
+            "paragraphs": self.extract_paragraphs(soup),
+            "links": self.extract_links(soup),
+            "images": self.extract_images(soup)
+        }
+        if schemas:
+            for schema_name, schema in schemas:
+                data[schema_name] = self.extract_structured_blocks(soup, schema)
+
+        return data
+    
+    def extract_headings(self, soup):
+        headings = []
+        for tag in soup.find_all(["h1", "h2", "h3", "h4", "h5", "h6"]):
+            text = tag.get_text(strip=True)
+            if (text):
+                headings.append(text)
+        return headings
+    
+    def extract_paragraphs(self, soup):
+        paragraphs = []
+        for tag in soup.find_all("p"):
+            text = tag.get_text(strip=True)
+            if text:
+                paragraphs.append(text)
+        return paragraphs
+    
+    def extract_links(self, soup):
+        links = []
+        for tag in soup.find_all("a"):
+            href = tag.get("href")
+            if href:
+                links.append(href)
+        return links
+    
+    def extract_images(self, soup):
+        images = []
+        for tag in soup.find_all("img"):
+            src = tag.get("src")
+            if src:
+                images.append(src)
+        return images
+
+    def extract_structured_blocks(self, soup, schema):
+        tag, class_name = schema["container"]
+        containers = soup.find_all(tag, class_=class_name)
+        results = []
+        for container in containers:
+            item = {}
+            for field, (field_tag, field_class) in schema["fields"].items():
+                if (field_class):
+                    element = container.find(field_tag, class_=field_class)
+                else:
+                    element = container.find(field_tag)
+                
+                if (element):
+                    item[field] = element.get_text(strip=True)
+                else:
+                    item[field] = None
+                
+            results.append(item)
+        return results
