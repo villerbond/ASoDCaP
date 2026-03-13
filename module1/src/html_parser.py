@@ -17,7 +17,7 @@ class HTMLParser:
             "tables": self.extract_tables(soup),
             "lists": self.extract_lists(soup),
             "metrics": self.get_document_metrics(soup),
-            "dom_tree": self.build_dom_tree(soup.find(html))
+            "dom_tree": self.build_dom_tree(soup.find("html"))
         }
         if schemas:
             for schema_name, schema in schemas.items():
@@ -108,9 +108,9 @@ class HTMLParser:
                 for cell in tr.find_all(["td", "th"]):
                     row.append(cell.get_text(strip=True))
                 if row:
-                    rows.appens(row)
+                    rows.append(row)
             if rows:
-                tables.appens({
+                tables.append({
                     "headers": rows[0] if rows else [],
                     "rows": rows[1:],
                     "row_count": len(rows) - 1 if rows else 0
@@ -140,49 +140,74 @@ class HTMLParser:
         return lists
 
     def extract_structured_blocks(self, soup, schema):
-        tag, class_name = schema["container"]
-        containers = soup.find_all(tag, class_=class_name)
+        container = schema.get("container")
+        if not container:
+            return []
+
+        tag, class_name = container
+        if class_name:
+            containers = soup.find_all(tag, class_=class_name)
+        else:
+            containers = soup.find_all(tag)
+
         results = []
         for container in containers:
             item = {}
-            for field, (field_tag, field_class) in schema["fields"].items():
-                if (field_class):
-                    element = container.find(field_tag, class_=field_class)
-                else:
-                    element = container.find(field_tag)
+            for field, field_info in schema.get("fields", {}).items():
+                if isinstance(field_info, tuple) and len(field_info) == 2:
+                    field_tag, field_class = field_info
+                    if field_class:
+                        element = container.find(field_tag, class_=field_class)
+                    else:
+                        element = container.find(field_tag)
                 
-                if (element):
-                    item[field] = element.get_text(strip=True)
-                else:
-                    item[field] = None
-                
-            results.append(item)
+                    if element:
+                        item[field] = element.get_text(strip=True)
+                    else:
+                        item[field] = None
+            
+            if any(item.values()):
+                results.append(item)
+
         return results
 
     def get_document_metrics(self, soup):
         return {
-            "links": len(soup.find_all("a")),
-            "images": len(soup.find_all("img")),
-            "paragraphs": len(soup.find_all("p")),
-            "headings": len(soup.find_all(["h1", "h2", "h3", "h4", "h5", "h6"])),
+            "links_count": len(soup.find_all("a")),
+            "images_count": len(soup.find_all("img")),
+            "paragraphs_count": len(soup.find_all("p")),
+            "headings_count": len(soup.find_all(["h1", "h2", "h3", "h4", "h5", "h6"])),
+            "tables_count": len(soup.find_all("table")),
+            "lists_count": len(soup.find_all(["ul", "ol"])),
         }
 
     def build_dom_tree(self, element):
         
+        if not element:
+            return None
+
         node = {
             "tag": element.name,
+            "attributes": element.attrs if element.attrs else None,
             "children": []
         }
 
         for child in element.children:
             if hasattr(child, "name") and child.name:
-                node["children"].append(
-                    self.build_dom_tree(child)
-                )
+                child_node = self.build_dom_tree(child)
+                if child_node:
+                    node["children"].append(child_node)
         
         return node
 
     def visualize_dom_tree(self, node, level=0):
-        print("--" * level + node["tag"])
-        for child in node["children"]:
+
+        if node and "tag" in node:
+            attrs = ""
+            if node.get("attributes"):
+                attrs = f" {node['attributes']}"
+            
+            print("--" * level + f"<{node['tag']}{attrs}>")
+
+        for child in node.get("children", []):
             self.visualize_dom_tree(child, level + 1)
