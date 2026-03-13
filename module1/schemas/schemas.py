@@ -6,3 +6,12 @@ product_schema = {
         "rating": ("span", "rating")
     }
 }
+
+article_schema = {
+    "container": ("div", "article"),
+    "fields": {
+        "title": ("h2", None),
+        "author": ("span", "author"),
+        "date": ("span", "date")
+    }
+}

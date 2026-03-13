@@ -28,11 +28,22 @@ class HTMLParser:
             raise ValueError("Invalid HTML structure")
 
     def extract_headings(self, soup):
-        headings = []
-        for tag in soup.find_all(["h1", "h2", "h3", "h4", "h5", "h6"]):
-            text = tag.get_text(strip=True)
-            if (text):
-                headings.append(text)
+
+        headings = {
+            "h1": [],
+            "h2": [],
+            "h3": [],
+            "h4": [],
+            "h5": [],
+            "h6": []
+        }
+
+        for tag in headings.keys():
+            for el in soup.find_all(tag):
+                text = el.get_text(strip=True)
+                if text:
+                    headings[tag].append(text)
+
         return headings
     
     def extract_paragraphs(self, soup):
@@ -103,6 +114,6 @@ class HTMLParser:
         return node
 
     def visualize_dom_tree(self, node, level=0):
-        print("-" * level + node["tag"])
+        print("--" * level + node["tag"])
         for child in node["children"]:
             self.visualize_dom_tree(child, level + 1)
