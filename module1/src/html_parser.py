@@ -5,12 +5,15 @@ class HTMLParser:
         self.parser_type = parser_type
 
     def parse(self, html: str, schemas: list = None):
+        self.validate_html(html)
         soup = BeautifulSoup(html, self.parser_type)
         data = {
             "headings": self.extract_headings(soup),
             "paragraphs": self.extract_paragraphs(soup),
             "links": self.extract_links(soup),
-            "images": self.extract_images(soup)
+            "images": self.extract_images(soup),
+            "metrics": self.get_document_metrics(soup),
+            "dom_tree": self.build_dom_tree(soup.html)
         }
         if schemas:
             for schema_name, schema in schemas:
@@ -18,6 +21,12 @@ class HTMLParser:
 
         return data
     
+    def validate_html(self, html: str):
+        if not html or html.strip() == "":
+            raise ValueError("HTML document is empty")
+        if "<html" not in html.lower():
+            raise ValueError("Invalid HTML structure")
+
     def extract_headings(self, soup):
         headings = []
         for tag in soup.find_all(["h1", "h2", "h3", "h4", "h5", "h6"]):
@@ -69,3 +78,31 @@ class HTMLParser:
                 
             results.append(item)
         return results
+
+    def get_document_metrics(self, soup):
+        return {
+            "links": len(soup.find_all("a")),
+            "images": len(soup.find_all("img")),
+            "paragraphs": len(soup.find_all("p")),
+            "headings": len(soup.find_all(["h1", "h2", "h3", "h4", "h5", "h6"])),
+        }
+
+    def build_dom_tree(self, element):
+        
+        node = {
+            "tag": element.name,
+            "children": []
+        }
+
+        for child in element.children:
+            if hasattr(child, "name") and child.name:
+                node["children"].append(
+                    self.build_dom_tree(child)
+                )
+        
+        return node
+
+    def visualize_dom_tree(self, node, level=0):
+        print("-" * level + node["tag"])
+        for child in node["children"]:
+            self.visualize_dom_tree(child, level + 1)
