@@ -7,75 +7,125 @@ import csv
 
 class ParserManager:
 
+    """
+    Класс, который управляет парсингом документов.
+    - выбирает соответствующий парсер
+    - управляет схемами
+    - обрабатывает файли и папки с файлами
+    - сохраняет результаты в форматы json и csv
+    - ведет статистику обработки
+    """
+
     def __init__(self, parser_type: str = "html.parser"):
 
         self.html_parser = HTMLParser(parser_type)
         self.xml_parser = XMLParser()
 
-        self.schemas = [
-            ("products", product_schema), 
-            ("articles", article_schema)
-        ]
+        # Здесь пока только две схемы
+        # Схемы используются для извлечения структурированных данных.
+        # Одна схема - например, продукт или статья
+        self.schemas = {
+            "products": product_schema, 
+            "articles": article_schema
+        }
 
-    def get_parser(self, file):
-        if file.endswith(".html"):
+        self.stats = {
+            "files_processed": 0,
+            "files_failed": 0
+        }
+
+    # По расширению файла выбирает соответствующий парсер
+    def get_parser(self, file_path):
+        if file_path.endswith(".html"):
             return self.html_parser
-        elif file.endswith(".xml"):
+        elif file_path.endswith(".xml"):
             return self.xml_parser
         else:
-            raise ValueError(f"Unsupported file format: {file}")
+            raise ValueError(f"Unsupported file format: {file_path}")
 
-    def process_file(self, file: str):
-
+    # Обработка одного файла
+    def process_file(self, file_path: str, selected_schemas = None):
         try:
-            with open(file, "r", encoding="utf-8") as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 toParse = f.read()
+
+            parser = self.get_parser(file_path)
+
+            # Если пользователь выбрал конкретные схемы, то оставляем только их
+            schemas_to_use = self.schemas
+            if selected_schemas and "all" not in selected_schemas:
+                schemas_to_use = {
+                    name: self.schemas[name] for name in selected_schemas 
+                    if name in self.schemas 
+                }
+
+            # Пока XML парсер не поддерживает схемы
+            if isinstance(parser, HTMLParser):
+                result = parser.parse(toParse, schemas_to_use)
+            else:
+                result = parser.parse(toParse)
+            
+            self.stats["files_processed"] += 1
+            
+            return result
+
         except FileNotFoundError:
-            print(f"Error: file '{file}' not found")
+            print(f"Error: file '{file_path}' not found")
+            self.stats["files_failed"] += 1
             return None
         except Exception as e:
-            print(f"Error with reading file: {e}")
+            print(f"Error with {file_path}: {e}")
+            self.stats["files_failed"] += 1
             return None
         
-        parser = self.get_parser(file)
-        
-        if isinstance(parser, HTMLParser):
-            result = parser.parse(toParse, self.schemas)
-        else:
-            result = parser.parse(toParse)
-            
-        return result
-    
-
-    def process_directory(self, directory: str):
+    # Обработка файлов в папке
+    def process_directory(self, directory: str, selected_schemas = None):
         results = []
 
         if not os.path.isdir(directory):
             raise ValueError(f"{directory} is not a valid directory")
 
+        self.stats = {
+            "files_processed": 0,
+            "files_failed": 0
+        }
+
         for file in os.listdir(directory):
-            if file.endswith(".html"):
+            if file.endswith(".html") or file.endswith(".xml"):
                 path = os.path.join(directory, file)
-                result = self.process_file(path)
+                result = self.process_file(path, selected_schemas)
                 if result:
                     results.append(result)
+
+        print(f"\nProcessing complete:")
+        print(f"Files processed: {self.stats['files_processed']}")
+        print(f"Files failed: {self.stats['files_failed']}")
                     
         return results
     
-    def save_json(self, data, path):
+    # Сохраняет данные в формате JSON
+    def save_json(self, data, file_path):
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
 
-        with open(path, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=4)
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
 
-    def save_csv(self, data, path):
+    # Сохраняет данные в формате XSV
+    def save_csv(self, data, file_path):
 
         if not data:
             print("No data to save")
             return
         
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+
         keys = data[0].keys()
 
-        with open(path, "w", newline="", encoding="utf-8") as f:
+        with open(file_path, "w", newline="", encoding="utf-8") as f:
             writer = csv.DictWriter(f, fieldnames=keys)
             writer.writeheader()
             writer.writerows(data)
+
+    # Возвращает текущую статистику
+    def get_statistics(self):
+        return self.stats.copy()

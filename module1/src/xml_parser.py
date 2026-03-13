@@ -1,6 +1,11 @@
 from bs4 import BeautifulSoup
 
 class XMLParser:
+    """
+    Парсер для XML-документов.
+    - извлекает элементы
+    """
+        
     def __init__(self):
         self.parser_type = "xml"
 

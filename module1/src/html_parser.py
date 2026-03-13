@@ -2,9 +2,22 @@ from bs4 import BeautifulSoup
 from typing import Dict
 
 class HTMLParser:
+
+    """
+    Парсер для HTML-документов.
+    - извлекает метаданные
+    - извлекает заголовки разного уровня
+    - извлекает параграфы, ссылки, изображения
+    - извлекает таблицы, списки
+    - извлекает структурированные данные по заданным схемам
+    - подсчитывает метрики документа
+    - строит и визуализирует DOM-дерево документа
+    """
+
     def __init__(self, parser_type: str = "html.parser"):
         self.parser_type = parser_type
 
+    # Основной метод, выполняющий полный анализ документа
     def parse(self, html: str, schemas: Dict = None):
         self.validate_html(html)
         soup = BeautifulSoup(html, self.parser_type)
@@ -25,6 +38,7 @@ class HTMLParser:
 
         return data
     
+    # Проверяет корректность документа
     def validate_html(self, html: str):
 
         if not html or html.strip() == "":
@@ -36,6 +50,7 @@ class HTMLParser:
                 or "<div" in html_lower):
             raise ValueError("Invalid HTML structure")
 
+    # Извлекает метаданные из документа
     def extract_metadata(self, soup):
         metadata = {
             "title": soup.title.string if soup.title else None,
@@ -53,6 +68,7 @@ class HTMLParser:
 
         return metadata
 
+    # Извлекает все заголовки (h1-h6) из документа и группирует их
     def extract_headings(self, soup):
 
         headings = {}
@@ -67,6 +83,7 @@ class HTMLParser:
             headings[tag] = elements
         return headings
     
+    # Извлекает все параграфы из документа
     def extract_paragraphs(self, soup):
         paragraphs = []
         for p in soup.find_all("p"):
@@ -75,6 +92,7 @@ class HTMLParser:
                 paragraphs.append(text)
         return paragraphs
     
+    # Извлекает все ссылки из документа
     def extract_links(self, soup):
         links = []
         for a in soup.find_all("a"):
@@ -87,6 +105,7 @@ class HTMLParser:
                 })
         return links
     
+    # Извлекает все изображения из документа
     def extract_images(self, soup):
         images = []
         for img in soup.find_all("img"):
@@ -99,6 +118,7 @@ class HTMLParser:
                 })
         return images
 
+    # Извлекает все таблицы из документа
     def extract_tables(self, soup):
         tables = []
         for table in soup.find_all("table"):
@@ -117,6 +137,7 @@ class HTMLParser:
                 })
         return tables
 
+    # Извлекает все списки из документа, разделяя ul и ol
     def extract_lists(self, soup):
         lists = {
             "unordered": [],
@@ -139,6 +160,8 @@ class HTMLParser:
 
         return lists
 
+    # Извлекает структурированные блоки данных по схеме
+    # Схема определяет структуру блока
     def extract_structured_blocks(self, soup, schema):
         container = schema.get("container")
         if not container:
@@ -171,6 +194,7 @@ class HTMLParser:
 
         return results
 
+    # Подсчитывает различные метрики документа
     def get_document_metrics(self, soup):
         return {
             "links_count": len(soup.find_all("a")),
@@ -181,6 +205,7 @@ class HTMLParser:
             "lists_count": len(soup.find_all(["ul", "ol"])),
         }
 
+    # Рекурсивно строит DOM-дерево документа
     def build_dom_tree(self, element):
         
         if not element:
@@ -200,6 +225,7 @@ class HTMLParser:
         
         return node
 
+    # Рекурсивно визуализирует DOM-дерево документа в консоли
     def visualize_dom_tree(self, node, level=0):
 
         if node and "tag" in node:

@@ -8,7 +8,7 @@ product_schema = {
 }
 
 article_schema = {
-    "container": ("div", "article"),
+    "container": ("article", None),
     "fields": {
         "title": ("h2", None),
         "author": ("span", "author"),
