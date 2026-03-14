@@ -32,7 +32,7 @@ def main():
     parser.add_argument("--output-dir", default="output", 
                         help="Output directory for results (default: output/)")
     parser.add_argument("--schemas", nargs="+",
-                        choices=["products", "articles", "all"],
+                        choices=["products", "articles", "avito_products", "all"],
                         default=["all"],
                         help="Specific schemas to extract")
 
@@ -82,11 +82,11 @@ def main():
             print(f"JSON saved to: {output_file}")
         
         elif args.format == "csv":
-            for section in ["products", "articles", "headings", "metrics"]:
+            for section in ["products", "articles", "avito_products", "headings", "metrics"]:
                 if section in result and result[section]:
                     output_file = os.path.join(args.output_dir, f"{source_name}{number}_{section}.csv")
 
-                    if section in ["products", "articles"]:
+                    if section in ["products", "articles", "avito_products"]:
                         manager.save_csv(result[section], output_file)
                     else:
                         manager.save_csv([result[section]], output_file)

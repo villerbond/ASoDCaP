@@ -1,6 +1,6 @@
 from .html_parser import HTMLParser
 from .xml_parser import XMLParser
-from schemas.schemas import product_schema, article_schema
+from schemas.schemas import product_schema, article_schema, avito_product_schema
 import os
 import json
 import csv
@@ -26,7 +26,8 @@ class ParserManager:
         # Одна схема - например, продукт или статья
         self.schemas = {
             "products": product_schema, 
-            "articles": article_schema
+            "articles": article_schema,
+            "avito_products": avito_product_schema
         }
 
         self.stats = {

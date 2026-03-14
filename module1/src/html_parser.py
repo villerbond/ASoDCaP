@@ -185,7 +185,9 @@ class HTMLParser:
                         element = container.find(field_tag)
                 
                     if element:
-                        item[field] = element.get_text(strip=True)
+                        raw_text = element.get_text()
+                        cleaned_text = ' '.join(raw_text.split())
+                        item[field] = cleaned_text
                     else:
                         item[field] = None
             
