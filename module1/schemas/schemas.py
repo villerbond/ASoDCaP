@@ -24,3 +24,23 @@ avito_product_schema = {
         "condition": ("p", "stylesMarningNormal-module-paragraph-m-dense-mYuSK"),
     }
 }
+
+ALL_SCHEMAS = {
+    "products": product_schema,
+    "articles": article_schema,
+    "avito_products": avito_product_schema
+}
+
+SCHEMA_NAMES = list(ALL_SCHEMAS.keys()) + ["all"]
+
+def get_schemas(schema_names=None):
+    if schema_names is None or "all" in schema_names:
+        return ALL_SCHEMAS.copy()
+    return {
+        name: ALL_SCHEMAS[name]
+        for name in schema_names
+        if name in ALL_SCHEMAS
+    }
+
+def get_schema_choices():
+    return SCHEMA_NAMES

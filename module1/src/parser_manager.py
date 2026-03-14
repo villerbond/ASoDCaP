@@ -1,6 +1,5 @@
 from .html_parser import HTMLParser
 from .xml_parser import XMLParser
-from schemas.schemas import product_schema, article_schema, avito_product_schema
 import os
 import json
 import csv
@@ -16,7 +15,7 @@ class ParserManager:
     - ведет статистику обработки
     """
 
-    def __init__(self, parser_type: str = "html.parser"):
+    def __init__(self, parser_type: str = "html.parser", schemas=None):
 
         self.html_parser = HTMLParser(parser_type)
         self.xml_parser = XMLParser()
@@ -24,16 +23,15 @@ class ParserManager:
         # Здесь пока только три схемы
         # Схемы используются для извлечения структурированных данных.
         # Одна схема - например, продукт или статья
-        self.schemas = {
-            "products": product_schema, 
-            "articles": article_schema,
-            "avito_products": avito_product_schema
-        }
+        self.schemas = schemas if schemas is not None else {}
 
         self.stats = {
             "files_processed": 0,
             "files_failed": 0
         }
+
+    def set_schemas(self, schemas):
+        self.schemas = schemas
 
     # По расширению файла выбирает соответствующий парсер
     def get_parser(self, file_path):
@@ -53,13 +51,10 @@ class ParserManager:
             parser = self.get_parser(file_path)
 
             # Если пользователь выбрал конкретные схемы, то оставляем только их
-            schemas_to_use = self.schemas
-            if selected_schemas and "all" not in selected_schemas:
-                schemas_to_use = {
-                    name: self.schemas[name] 
-                    for name in selected_schemas 
-                    if name in self.schemas 
-                }
+            if selected_schemas is not None:
+                schemas_to_use = selected_schemas
+            else:
+                schemas_to_use = self.schemas
 
             # Пока XML парсер не поддерживает схемы
             if isinstance(parser, HTMLParser):

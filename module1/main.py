@@ -1,6 +1,7 @@
 import argparse
 import os
 from src.parser_manager import ParserManager
+from schemas.schemas import get_schema_choices, get_schemas
 
 def main():
 
@@ -51,7 +52,7 @@ def main():
     parser.add_argument("--output-dir", default="output", 
                         help="Output directory for results (default: output/)")
     parser.add_argument("--schemas", nargs="+",
-                        choices=["products", "articles", "avito_products", "all"],
+                        choices=get_schema_choices(),
                         default=["all"],
                         help="Specific schemas to extract")
 
@@ -59,7 +60,9 @@ def main():
 
     os.makedirs(args.output_dir, exist_ok=True)
 
-    manager = ParserManager()
+    all_schemas = get_schemas()
+
+    manager = ParserManager(schemas=all_schemas)
 
     data_options = {
         "all": args.all_data or not 
@@ -70,12 +73,15 @@ def main():
     }
 
     # Фильтрация схем
-    if args.schemas != ["all"]:
-        selected_schemas = {name: manager.schemas[name] 
-                            for name in args.schemas 
-                            if name in manager.schemas}
-    else:
-        selected_schemas = manager.schemas
+    selected_schemas = get_schemas(args.schemas)
+
+    # # Фильтрация схем
+    # if args.schemas != ["all"]:
+    #     selected_schemas = {name: manager.schemas[name] 
+    #                         for name in args.schemas 
+    #                         if name in manager.schemas}
+    # else:
+    #     selected_schemas = manager.schemas
 
     # Рассматриваем два случая: когда передан один файл или когда передана папка
     if os.path.isfile(args.path):
