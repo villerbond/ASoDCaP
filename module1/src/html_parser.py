@@ -18,26 +18,70 @@ class HTMLParser:
         self.parser_type = parser_type
 
     # Основной метод, выполняющий полный анализ документа
-    def parse(self, html: str, schemas: Dict = None):
+    def parse(self, html, schemas = None, data_options = None):
         self.validate_html(html)
         soup = BeautifulSoup(html, self.parser_type)
-        data = {
-            "metadata": self.extract_metadata(soup),
-            "headings": self.extract_headings(soup),
-            "paragraphs": self.extract_paragraphs(soup),
-            "links": self.extract_links(soup),
-            "images": self.extract_images(soup),
-            "tables": self.extract_tables(soup),
-            "lists": self.extract_lists(soup),
-            "metrics": self.get_document_metrics(soup),
-            "dom_tree": self.build_dom_tree(soup.find("html"))
-        }
-        if schemas:
+        if data_options is None:
+            data_options = {"all": True}
+        data = {}
+        if data_options.get("all") or data_options.get("common_only") or data_options.get("data_types"):
+            common_data = self._parse_common_data(soup, data_options)
+            data.update(common_data)
+
+        if schemas and (data_options.get("all") or data_options.get("structured_only")):
             for schema_name, schema in schemas.items():
                 data[schema_name] = self.extract_structured_blocks(soup, schema)
 
+        # data = {
+        #     "metadata": self.extract_metadata(soup),
+        #     "headings": self.extract_headings(soup),
+        #     "paragraphs": self.extract_paragraphs(soup),
+        #     "links": self.extract_links(soup),
+        #     "images": self.extract_images(soup),
+        #     "tables": self.extract_tables(soup),
+        #     "lists": self.extract_lists(soup),
+        #     "metrics": self.get_document_metrics(soup),
+        #     "dom_tree": self.build_dom_tree(soup.find("html"))
+        # }
+
         return data
     
+    # Парсит данные в зависимости от того, что выбрано
+    def _parse_common_data(self, soup, data_options):
+        data = {}
+        data_types = data_options.get("data_types", [])
+        all_data = data_options.get("all", False)
+
+        if all_data or "metadata" in data_types:
+            data["metadata"] = self.extract_metadata(soup)
+        
+        if all_data or "headings" in data_types:
+            data["headings"] = self.extract_headings(soup)
+        
+        if all_data or "paragraphs" in data_types:
+            data["paragraphs"] = self.extract_paragraphs(soup)
+        
+        if all_data or "links" in data_types:
+            data["links"] = self.extract_links(soup)
+        
+        if all_data or "images" in data_types:
+            data["images"] = self.extract_images(soup)
+        
+        if all_data or "tables" in data_types:
+            data["tables"] = self.extract_tables(soup)
+        
+        if all_data or "lists" in data_types:
+            data["lists"] = self.extract_lists(soup)
+        
+        if all_data or "metrics" in data_types:
+            data["metrics"] = self.get_document_metrics(soup)
+        
+        if all_data or "dom" in data_types:
+            data["dom_tree"] = self.build_dom_tree(soup.find("html"))
+        
+        return data
+
+
     # Проверяет корректность документа
     def validate_html(self, html: str):
 

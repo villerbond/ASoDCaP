@@ -21,7 +21,7 @@ class ParserManager:
         self.html_parser = HTMLParser(parser_type)
         self.xml_parser = XMLParser()
 
-        # Здесь пока только две схемы
+        # Здесь пока только три схемы
         # Схемы используются для извлечения структурированных данных.
         # Одна схема - например, продукт или статья
         self.schemas = {
@@ -45,7 +45,7 @@ class ParserManager:
             raise ValueError(f"Unsupported file format: {file_path}")
 
     # Обработка одного файла
-    def process_file(self, file_path: str, selected_schemas = None):
+    def process_file(self, file_path: str, selected_schemas = None, data_options = None):
         try:
             with open(file_path, "r", encoding="utf-8") as f:
                 toParse = f.read()
@@ -56,13 +56,14 @@ class ParserManager:
             schemas_to_use = self.schemas
             if selected_schemas and "all" not in selected_schemas:
                 schemas_to_use = {
-                    name: self.schemas[name] for name in selected_schemas 
+                    name: self.schemas[name] 
+                    for name in selected_schemas 
                     if name in self.schemas 
                 }
 
             # Пока XML парсер не поддерживает схемы
             if isinstance(parser, HTMLParser):
-                result = parser.parse(toParse, schemas_to_use)
+                result = parser.parse(toParse, schemas_to_use, data_options)
             else:
                 result = parser.parse(toParse)
             
@@ -80,7 +81,7 @@ class ParserManager:
             return None
         
     # Обработка файлов в папке
-    def process_directory(self, directory: str, selected_schemas = None):
+    def process_directory(self, directory: str, selected_schemas = None, data_options = None):
         results = []
 
         if not os.path.isdir(directory):
@@ -94,7 +95,7 @@ class ParserManager:
         for file in os.listdir(directory):
             if file.endswith(".html") or file.endswith(".xml"):
                 path = os.path.join(directory, file)
-                result = self.process_file(path, selected_schemas)
+                result = self.process_file(path, selected_schemas, data_options)
                 if result:
                     results.append(result)
 
