@@ -1,5 +1,5 @@
 """
-Тест-кейсы для ParserManager.
+Тест-кейсы для ParserManager
 """
 import pytest
 import os
@@ -57,20 +57,39 @@ class TestParserManagerInit:
         """TC-PM-02"""
         assert isinstance(manager.xml_parser, XMLParser)
     def test_schemas_empty_by_default(self, manager):
-        """TC-PM-03: schemas пустой по умолчанию — схемы передаются снаружи"""
+        """TC-PM-03"""
         assert manager.schemas == {}
     def test_schemas_set_via_constructor(self):
-        """TC-PM-04: схемы передаются через конструктор"""
+        """TC-PM-04"""
         pm = ParserManager(schemas={"products": product_schema, "articles": article_schema})
         assert "products" in pm.schemas and "articles" in pm.schemas
     def test_schemas_set_via_set_schemas(self, manager):
-        """TC-PM-04b: схемы устанавливаются через set_schemas()"""
+        """TC-PM-04b"""
         manager.set_schemas({"products": product_schema})
         assert "products" in manager.schemas
     def test_initial_stats(self, manager):
         """TC-PM-05"""
         stats = manager.get_statistics()
         assert stats["files_processed"] == 0 and stats["files_failed"] == 0
+    
+    def test_get_schemas_returns_all_by_default(self):
+        """TC-PM-S1"""
+        from schemas.schemas import get_schemas, ALL_SCHEMAS
+        result = get_schemas(None)
+        assert set(result.keys()) == set(ALL_SCHEMAS.keys())
+
+    def test_get_schemas_filter_single(self):
+        """TC-PM-S2"""
+        from schemas.schemas import get_schemas
+        result = get_schemas(["products"])
+        assert list(result.keys()) == ["products"]
+
+    def test_get_schemas_unknown_ignored(self):
+        """TC-PM-S3"""
+        from schemas.schemas import get_schemas
+        result = get_schemas(["products", "nonexistent"])
+        assert "nonexistent" not in result
+        assert "products" in result
 
 class TestGetParser:
     def test_html_extension_returns_html_parser(self, manager):
@@ -111,18 +130,17 @@ class TestProcessFile:
         manager.process_file(html_file)
         assert manager.get_statistics()["files_processed"] == 1
     def test_selected_schemas_as_dict(self, html_file):
-        """TC-PM-16: selected_schemas передаётся как словарь схем"""
+        """TC-PM-16"""
         pm = ParserManager()
         result = pm.process_file(html_file, selected_schemas={"products": product_schema})
         assert "products" in result
         assert "articles" not in result
     def test_schemas_from_constructor_applied(self, html_file):
-        """TC-PM-17: схемы из конструктора применяются автоматически"""
+        """TC-PM-17"""
         pm = ParserManager(schemas={"products": product_schema, "articles": article_schema})
         result = pm.process_file(html_file)
         assert "products" in result and "articles" in result
     def test_data_options_headings_only(self, manager, html_file):
-        """TC-PM-18: data_options фильтрует секции результата"""
         result = manager.process_file(
             html_file,
             data_options={"all": False, "data_types": ["headings"]}
@@ -135,10 +153,10 @@ class TestProcessDirectory:
         """TC-PM-19"""
         assert isinstance(manager.process_directory(mixed_dir), list)
     def test_processes_html_and_xml(self, manager, mixed_dir):
-        """TC-PM-20: .html и .xml обрабатываются, .txt игнорируется"""
+        """TC-PM-20"""
         assert len(manager.process_directory(mixed_dir)) == 2
     def test_stats_reset_before_run(self, manager, mixed_dir):
-        """TC-PM-21: статистика сбрасывается перед обработкой директории"""
+        """TC-PM-21"""
         manager.process_file("nonexistent.html")
         manager.process_directory(mixed_dir)
         stats = manager.get_statistics()

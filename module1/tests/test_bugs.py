@@ -1,5 +1,5 @@
 """
-Тесты, фиксирующие найденные баги.
+Тесты, фиксирующие найденные баги
 
 """
 
@@ -20,9 +20,9 @@ def avito_path(request):
     return os.path.join(os.path.dirname(__file__), "../data/avito.html")
 
 
-# TC-BUG-01: синтетический пример — показывает причину бага
+# TC-BUG-01: причина бага
 def test_bug01_links_count_synthetic(parser):
-    """БАГ #1 — links_count считает <a> без href,
+    """БАГ #1: links_count считает <a> без href,
     но extract_links() их пропускает. Метрика не совпадает с реальными данными."""
     html = """<html><body>
         <a href="https://example.com">Link 1</a>
@@ -41,9 +41,9 @@ def test_bug01_links_count_synthetic(parser):
     )
 
 
-# TC-BUG-01b: реальные данные Avito — показывает масштаб бага
+# TC-BUG-01b: реальные данные
 def test_bug01_links_count_real_avito(avito_path, parser):
-    """БАГ #1 на реальных данных Avito — масштаб расхождения."""
+    """БАГ #1 на реальных данных"""
     if not os.path.exists(avito_path):
         pytest.skip(f"Файл не найден: {avito_path}")
 

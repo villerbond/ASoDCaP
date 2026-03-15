@@ -1,6 +1,5 @@
 """
-Тест-кейсы для main.py (CLI).
-Тестируем через подмену sys.argv.
+Тест-кейсы для main.py
 """
 
 import os
@@ -10,7 +9,6 @@ import csv
 import pytest
 import tempfile
 
-# Добавляем корень проекта в путь
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from main import main
@@ -59,19 +57,19 @@ def mixed_dir(tmp_path):
 class TestSaveJson:
 
     def test_json_file_created(self, html_file, out_dir):
-        """TC-MA-01: --format json создаёт JSON файл"""
+        """TC-MA-01"""
         sys.argv = ["main.py", html_file, "--format", "json", "--output-dir", out_dir]
         main()
         assert any(f.endswith(".json") for f in os.listdir(out_dir))
 
     def test_json_filename_matches_source(self, html_file, out_dir):
-        """TC-MA-02: имя JSON файла совпадает с именем источника"""
+        """TC-MA-02"""
         sys.argv = ["main.py", html_file, "--format", "json", "--output-dir", out_dir]
         main()
         assert "sample.json" in os.listdir(out_dir)
 
     def test_json_content_valid(self, html_file, out_dir):
-        """TC-MA-03: JSON файл содержит валидный JSON"""
+        """TC-MA-03"""
         sys.argv = ["main.py", html_file, "--format", "json", "--output-dir", out_dir]
         main()
         json_file = os.path.join(out_dir, "sample.json")
@@ -80,7 +78,7 @@ class TestSaveJson:
         assert isinstance(data, dict)
 
     def test_json_has_headings(self, html_file, out_dir):
-        """TC-MA-04: JSON содержит секцию headings"""
+        """TC-MA-04"""
         sys.argv = ["main.py", html_file, "--format", "json", "--output-dir", out_dir]
         main()
         json_file = os.path.join(out_dir, "sample.json")
@@ -96,7 +94,7 @@ class TestSaveJson:
 class TestSaveCsv:
 
     def test_csv_file_created_for_products(self, html_file, out_dir):
-        """TC-MA-05: --format csv создаёт CSV для секции products"""
+        """TC-MA-05"""
         sys.argv = ["main.py", html_file, "--format", "csv",
                     "--output-dir", out_dir, "--schemas", "products"]
         main()
@@ -104,7 +102,7 @@ class TestSaveCsv:
         assert any("products" in f and f.endswith(".csv") for f in files)
 
     def test_csv_products_content(self, html_file, out_dir):
-        """TC-MA-06: CSV products содержит данные"""
+        """TC-MA-06"""
         sys.argv = ["main.py", html_file, "--format", "csv",
                     "--output-dir", out_dir, "--schemas", "products"]
         main()
@@ -117,10 +115,9 @@ class TestSaveCsv:
         assert len(rows) > 0
 
     def test_no_format_no_output_files(self, html_file, out_dir):
-        """TC-MA-07: без --format файлы не создаются"""
+        """TC-MA-07"""
         sys.argv = ["main.py", html_file, "--output-dir", out_dir]
         main()
-        # папка либо не создана либо пустая
         if os.path.exists(out_dir):
             assert len(os.listdir(out_dir)) == 0
 
@@ -132,7 +129,7 @@ class TestSaveCsv:
 class TestDataOptions:
 
     def test_structured_only_no_headings(self, html_file, out_dir):
-        """TC-MA-08: --structured-only → headings не попадает в JSON"""
+        """TC-MA-08"""
         sys.argv = ["main.py", html_file, "--format", "json",
                     "--structured-only", "--output-dir", out_dir]
         main()
@@ -141,7 +138,7 @@ class TestDataOptions:
         assert "headings" not in data
 
     def test_structured_only_has_products(self, html_file, out_dir):
-        """TC-MA-09: --structured-only → products присутствует в JSON"""
+        """TC-MA-09"""
         sys.argv = ["main.py", html_file, "--format", "json",
                     "--structured-only", "--output-dir", out_dir,
                     "--schemas", "products"]
@@ -151,7 +148,7 @@ class TestDataOptions:
         assert "products" in data
 
     def test_data_types_headings_only(self, html_file, out_dir):
-        """TC-MA-10: --data-types headings → только headings в JSON"""
+        """TC-MA-10"""
         sys.argv = ["main.py", html_file, "--format", "json",
                     "--data-types", "headings", "--output-dir", out_dir]
         main()
@@ -161,7 +158,7 @@ class TestDataOptions:
         assert "links" not in data
 
     def test_all_data_has_all_sections(self, html_file, out_dir):
-        """TC-MA-11: --all-data → все секции в JSON"""
+        """TC-MA-11"""
         sys.argv = ["main.py", html_file, "--format", "json",
                     "--all-data", "--output-dir", out_dir]
         main()
@@ -178,20 +175,20 @@ class TestDataOptions:
 class TestDirectoryAndXml:
 
     def test_xml_file_json(self, xml_file, out_dir):
-        """TC-MA-12: XML файл обрабатывается и сохраняется в JSON"""
+        """TC-MA-12"""
         sys.argv = ["main.py", xml_file, "--format", "json", "--output-dir", out_dir]
         main()
         assert any(f.endswith(".json") for f in os.listdir(out_dir))
 
     def test_directory_creates_multiple_files(self, mixed_dir, out_dir):
-        """TC-MA-13: директория с html+xml создаёт несколько JSON файлов"""
+        """TC-MA-13"""
         sys.argv = ["main.py", mixed_dir, "--format", "json", "--output-dir", out_dir]
         main()
         json_files = [f for f in os.listdir(out_dir) if f.endswith(".json")]
         assert len(json_files) >= 2
 
     def test_output_dir_created_automatically(self, html_file, tmp_path):
-        """TC-MA-14: output директория создаётся автоматически если не существует"""
+        """TC-MA-14"""
         out = str(tmp_path / "new" / "nested" / "output")
         sys.argv = ["main.py", html_file, "--format", "json", "--output-dir", out]
         main()
@@ -205,7 +202,7 @@ class TestDirectoryAndXml:
 class TestSchemas:
 
     def test_schemas_filter_products_only(self, html_file, out_dir):
-        """TC-MA-15: --schemas products → только products в JSON, без articles"""
+        """TC-MA-15"""
         sys.argv = ["main.py", html_file, "--format", "json",
                     "--schemas", "products", "--output-dir", out_dir]
         main()
