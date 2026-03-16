@@ -142,11 +142,10 @@ class HTMLParser:
         for a in soup.find_all("a"):
             href = a.get("href")
             text = a.get_text(strip=True)
-            if href:
-                links.append({
-                    "url": href,
-                    "text": text
-                })
+            links.append({
+                "url": href if href else "#",
+                "text": text
+            })
         return links
     
     # Извлекает все изображения из документа
