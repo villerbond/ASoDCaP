@@ -1,6 +1,5 @@
 """
-Тест-кейсы для XMLParser.
-Покрывает: parse, extract_elements.
+Тест-кейсы для XMLParser
 """
 
 import pytest
@@ -39,7 +38,7 @@ def single_tag_xml():
 class TestXMLParserInit:
 
     def test_parser_type(self, parser):
-        """TC-XP-01: parser_type установлен в 'xml'"""
+        """TC-XP-01"""
         assert parser.parser_type == "xml"
 
 
@@ -50,27 +49,27 @@ class TestXMLParserInit:
 class TestXMLParse:
 
     def test_root_name(self, parser, simple_xml):
-        """TC-XP-02: корневой тег определяется верно"""
+        """TC-XP-02"""
         result = parser.parse(simple_xml)
         assert result["root"] == "catalog"
 
     def test_elements_key_present(self, parser, simple_xml):
-        """TC-XP-03: результат содержит ключ elements"""
+        """TC-XP-03"""
         result = parser.parse(simple_xml)
         assert "elements" in result
 
     def test_elements_is_list(self, parser, simple_xml):
-        """TC-XP-04: elements — список"""
+        """TC-XP-04"""
         result = parser.parse(simple_xml)
         assert isinstance(result["elements"], list)
 
     def test_elements_not_empty(self, parser, simple_xml):
-        """TC-XP-05: elements не пуст для непустого XML"""
+        """TC-XP-05"""
         result = parser.parse(simple_xml)
         assert len(result["elements"]) > 0
 
     def test_single_root_tag(self, parser, single_tag_xml):
-        """TC-XP-06: работает с минимальным XML (root + один дочерний тег)"""
+        """TC-XP-06"""
         result = parser.parse(single_tag_xml)
         assert result["root"] == "root"
 
@@ -82,21 +81,21 @@ class TestXMLParse:
 class TestExtractElements:
 
     def test_element_has_tag_key(self, parser, simple_xml):
-        """TC-XP-07: каждый элемент содержит ключ 'tag'"""
+        """TC-XP-07"""
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(simple_xml, "xml")
         elements = parser.extract_elements(soup)
         assert all("tag" in el for el in elements)
 
     def test_element_has_text_key(self, parser, simple_xml):
-        """TC-XP-08: каждый элемент содержит ключ 'text'"""
+        """TC-XP-08"""
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(simple_xml, "xml")
         elements = parser.extract_elements(soup)
         assert all("text" in el for el in elements)
 
     def test_known_tag_present(self, parser, simple_xml):
-        """TC-XP-09: тег 'title' присутствует в элементах"""
+        """TC-XP-09"""
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(simple_xml, "xml")
         elements = parser.extract_elements(soup)
@@ -104,7 +103,7 @@ class TestExtractElements:
         assert "title" in tags
 
     def test_text_extracted(self, parser, simple_xml):
-        """TC-XP-10: текст внутри тега извлекается корректно"""
+        """TC-XP-10"""
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(simple_xml, "xml")
         elements = parser.extract_elements(soup)
@@ -112,7 +111,7 @@ class TestExtractElements:
         assert "Python Basics" in texts
 
     def test_nested_tags_included(self, parser, simple_xml):
-        """TC-XP-11: вложенные теги (book, title, author) все включены"""
+        """TC-XP-11"""
         from bs4 import BeautifulSoup
         soup = BeautifulSoup(simple_xml, "xml")
         elements = parser.extract_elements(soup)

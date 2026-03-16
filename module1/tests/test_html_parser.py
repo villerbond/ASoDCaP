@@ -1,5 +1,5 @@
 """
-Тест-кейсы для HTMLParser.
+Тест-кейсы для HTMLParser
 """
 import pytest
 from src.html_parser import HTMLParser
@@ -270,51 +270,51 @@ class TestVisualizeDomTree:
 
 class TestParseCommonData:
     def test_all_true_returns_all_sections(self, parser, soup):
-        """TC-HP-51: data_options={'all': True} → все секции"""
+        """TC-HP-51"""
         data = parser._parse_common_data(soup, {"all": True})
         for key in ["metadata","headings","paragraphs","links","images","tables","lists","metrics","dom_tree"]:
             assert key in data
     def test_data_types_headings_only(self, parser, soup):
-        """TC-HP-52: data_types=['headings'] → только headings"""
+        """TC-HP-52"""
         data = parser._parse_common_data(soup, {"all": False, "data_types": ["headings"]})
         assert "headings" in data
         assert "metadata" not in data
     def test_data_types_multiple(self, parser, soup):
-        """TC-HP-53: data_types=['links','images'] → только links и images"""
+        """TC-HP-53"""
         data = parser._parse_common_data(soup, {"all": False, "data_types": ["links", "images"]})
         assert "links" in data and "images" in data
         assert "headings" not in data
     def test_dom_type_returns_dom_tree(self, parser, soup):
-        """TC-HP-54: data_types=['dom'] → dom_tree присутствует"""
+        """TC-HP-54"""
         data = parser._parse_common_data(soup, {"all": False, "data_types": ["dom"]})
         assert "dom_tree" in data and "headings" not in data
     def test_empty_options_returns_empty(self, parser, soup):
-        """TC-HP-55: пустые опции → пустой словарь"""
+        """TC-HP-55"""
         assert parser._parse_common_data(soup, {"all": False, "data_types": []}) == {}
 
 class TestParse:
     def test_parse_default_returns_all_keys(self, parser, full_html):
-        """TC-HP-56: parse без data_options → все секции"""
+        """TC-HP-56"""
         result = parser.parse(full_html)
         for key in ["metadata","headings","paragraphs","links","images","tables","lists","metrics","dom_tree"]:
             assert key in result
     def test_parse_with_schemas(self, parser, product_html):
-        """TC-HP-57: parse с переданными схемами добавляет их в результат"""
+        """TC-HP-57"""
         from schemas.schemas import product_schema
         result = parser.parse(product_html, {"products": product_schema})
         assert "products" in result and len(result["products"]) == 2
     def test_parse_empty_raises(self, parser):
-        """TC-HP-58: parse пустого документа → ValueError"""
+        """TC-HP-58"""
         with pytest.raises(ValueError):
             parser.parse("")
     def test_parse_structured_only(self, parser, product_html):
-        """TC-HP-59: structured_only=True → только схемы, без headings"""
+        """TC-HP-59"""
         from schemas.schemas import product_schema
         result = parser.parse(product_html, {"products": product_schema},
                               {"all": False, "structured_only": True})
         assert "products" in result and "headings" not in result
     def test_parse_data_types_filter(self, parser, full_html):
-        """TC-HP-60: data_types=['headings','links'] → только эти секции"""
+        """TC-HP-60"""
         result = parser.parse(full_html, data_options={"all": False, "data_types": ["headings", "links"]})
         assert "headings" in result and "links" in result
         assert "images" not in result and "tables" not in result

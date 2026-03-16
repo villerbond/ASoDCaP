@@ -1,11 +1,5 @@
 """
-Тесты на реальных данных — avito.html.
-
-Запуск с дефолтным путём (data/avito.html):
-    pytest tests/test_real_avito.py
-
-Запуск с произвольным путём:
-    pytest tests/test_real_avito.py --avito-html="C:/Downloads/avito.html"
+Тесты на реальных данных (avito.html)
 """
 
 import os
@@ -13,14 +7,9 @@ import pytest
 from src.html_parser import HTMLParser
 from src.parser_manager import ParserManager
 
-# ─── схема под реальную структуру Avito ─────────────────────────────────────
-# Авито использует data-marker атрибуты вместо классов,
-# поэтому extract_structured_blocks не подходит — используем парсер напрямую
-
 def extract_avito_items(html: str) -> list:
     """
     Извлекает карточки объявлений из HTML страницы Avito.
-    Каждая карточка содержит: title, price, condition, location, link, img.
     """
     from bs4 import BeautifulSoup
     soup = BeautifulSoup(html, "html.parser")
@@ -97,31 +86,31 @@ def skip_if_no_file(request, avito_path):
 class TestAvitoPageStructure:
 
     def test_page_parses_without_error(self, manager, avito_path):
-        """TC-AV-01: страница Avito парсится без исключений"""
+        """TC-AV-01"""
         result = manager.process_file(avito_path)
         assert result is not None
 
     def test_page_has_title(self, manager, avito_path):
-        """TC-AV-02: страница содержит заголовок"""
+        """TC-AV-02"""
         result = manager.process_file(avito_path)
         assert result["metadata"]["title"] is not None
         assert "Авито" in result["metadata"]["title"] or "avito" in result["metadata"]["title"].lower()
 
     def test_page_has_links(self, manager, avito_path):
-        """TC-AV-03: на странице есть ссылки"""
+        """TC-AV-03"""
         result = manager.process_file(avito_path)
         assert result["metrics"]["links_count"] > 0
 
     def test_page_has_images(self, manager, avito_path):
-        """TC-AV-04: на странице есть изображения"""
+        """TC-AV-04"""
         result = manager.process_file(avito_path)
         assert result["metrics"]["images_count"] > 0
 
     def test_metrics_match_extracted_data(self, manager, avito_path):
-        """TC-AV-05: метрики совпадают с реально извлечёнными данными"""
+        """TC-AV-05"""
         result = manager.process_file(avito_path)
         assert result["metrics"]["images_count"] == len(result["images"])
-        # links намеренно не проверяем — см. test_bugs.py TC-BUG-01b
+        # links намеренно не проверяем, см. test_bugs.py TC-BUG-01b
 
 
 # ============================================================================
@@ -131,25 +120,25 @@ class TestAvitoPageStructure:
 class TestAvitoItems:
 
     def test_items_found(self, avito_items):
-        """TC-AV-06: карточки объявлений найдены на странице"""
+        """TC-AV-06"""
         assert len(avito_items) > 0
 
     def test_items_count_reasonable(self, avito_items):
-        """TC-AV-07: количество карточек в разумных пределах (1..200)"""
+        """TC-AV-07"""
         assert 1 <= len(avito_items) <= 200
 
     def test_every_item_has_title(self, avito_items):
-        """TC-AV-08: у каждой карточки есть заголовок"""
+        """TC-AV-08"""
         for item in avito_items:
             assert item["title"] is not None, f"Нет title у карточки: {item}"
 
     def test_every_item_has_price(self, avito_items):
-        """TC-AV-09: у каждой карточки есть цена"""
+        """TC-AV-09"""
         for item in avito_items:
             assert item["price"] is not None, f"Нет price у карточки: {item}"
 
     def test_every_item_has_link(self, avito_items):
-        """TC-AV-10: у каждой карточки есть ссылка"""
+        """TC-AV-10"""
         for item in avito_items:
             assert item["link"] is not None, f"Нет link у карточки: {item}"
 
@@ -161,7 +150,7 @@ class TestAvitoItems:
 class TestAvitoDataQuality:
 
     def test_prices_contain_ruble_sign(self, avito_items):
-        """TC-AV-11: цены содержат знак рубля"""
+        """TC-AV-11"""
         prices_with_currency = [
             i for i in avito_items
             if i["price"] and ("₽" in i["price"] or "руб" in i["price"])
@@ -169,28 +158,27 @@ class TestAvitoDataQuality:
         assert len(prices_with_currency) > 0
 
     def test_links_point_to_avito(self, avito_items):
-        """TC-AV-12: все ссылки ведут на avito.ru"""
+        """TC-AV-12"""
         for item in avito_items:
             if item["link"]:
                 assert "avito.ru" in item["link"], \
                     f"Ссылка не на avito.ru: {item['link']}"
 
     def test_images_have_url(self, avito_items):
-        """TC-AV-13: изображения карточек имеют непустой URL"""
+        """TC-AV-13"""
         items_with_img = [i for i in avito_items if i["img"]]
         assert len(items_with_img) > 0
 
     def test_condition_values_known(self, avito_items):
-        """TC-AV-14: состояние товара — известное значение (Новый / Б/у)"""
-        known = {"Новый", "Б/у", "Б⁠/⁠у"}  # Авито использует спецсимволы
+        """TC-AV-14"""
+        known = {"Новый", "Б/у", "Б⁠/⁠у"}
         items_with_condition = [i for i in avito_items if i["condition"]]
         for item in items_with_condition:
-            # Проверяем что значение содержит одно из известных слов
             cond = item["condition"]
             assert any(k in cond for k in known), \
                 f"Неизвестное состояние: {cond!r}"
 
     def test_no_duplicate_links(self, avito_items):
-        """TC-AV-15: нет дублирующихся ссылок (каждое объявление уникально)"""
+        """TC-AV-15"""
         links = [i["link"] for i in avito_items if i["link"]]
         assert len(links) == len(set(links)), "Найдены дублирующиеся ссылки"
