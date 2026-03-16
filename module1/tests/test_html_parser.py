@@ -135,11 +135,13 @@ class TestExtractLinks:
     def test_link_text(self, parser, soup):
         """TC-HP-21"""
         assert "Example" in [l["text"] for l in parser.extract_links(soup)]
-    def test_anchor_without_href_excluded(self, parser):
+    def test_anchor_without_href_gets_hash(self, parser):
         """TC-HP-22"""
         from bs4 import BeautifulSoup
         s = BeautifulSoup("<html><body><a>No href</a></body></html>", "html.parser")
-        assert parser.extract_links(s) == []
+        links = parser.extract_links(s)
+        assert len(links) == 1
+        assert links[0]["url"] == "#"
 
 class TestExtractImages:
     def test_images_count(self, parser, soup):

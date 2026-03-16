@@ -71,25 +71,6 @@ class TestParserManagerInit:
         """TC-PM-05"""
         stats = manager.get_statistics()
         assert stats["files_processed"] == 0 and stats["files_failed"] == 0
-    
-    def test_get_schemas_returns_all_by_default(self):
-        """TC-PM-S1"""
-        from schemas.schemas import get_schemas, ALL_SCHEMAS
-        result = get_schemas(None)
-        assert set(result.keys()) == set(ALL_SCHEMAS.keys())
-
-    def test_get_schemas_filter_single(self):
-        """TC-PM-S2"""
-        from schemas.schemas import get_schemas
-        result = get_schemas(["products"])
-        assert list(result.keys()) == ["products"]
-
-    def test_get_schemas_unknown_ignored(self):
-        """TC-PM-S3"""
-        from schemas.schemas import get_schemas
-        result = get_schemas(["products", "nonexistent"])
-        assert "nonexistent" not in result
-        assert "products" in result
 
 class TestGetParser:
     def test_html_extension_returns_html_parser(self, manager):

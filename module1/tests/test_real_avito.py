@@ -110,7 +110,7 @@ class TestAvitoPageStructure:
         """TC-AV-05"""
         result = manager.process_file(avito_path)
         assert result["metrics"]["images_count"] == len(result["images"])
-        # links намеренно не проверяем, см. test_bugs.py TC-BUG-01b
+        assert result["metrics"]["links_count"] == len(result["links"])
 
 
 # ============================================================================
